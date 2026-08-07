@@ -1,0 +1,29 @@
+name: audiobook_app
+description: Audiobook player with offline caching
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  dio: ^5.4.0
+  provider: ^6.1.1
+  path_provider: ^2.1.2
+  sqflite: ^2.3.0
+  shared_preferences: ^2.2.2
+  cached_network_image: ^3.3.1
+  just_audio: ^0.9.36
+  audio_service: ^0.18.12
+  audio_session: ^0.1.18
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
