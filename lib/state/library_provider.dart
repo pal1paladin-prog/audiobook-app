@@ -58,16 +58,17 @@ class LibraryProvider extends ChangeNotifier {
   }
 
   String _baseTitle(String title) {
-    var t = title.replaceAll(RegExp(r'\s*/\s*.*$'), '').replaceAll(RegExp(r'\s*\([^)]*\)\s*$'), '');
+    var t = title.replaceAll(RegExp('\\s*/\\s*.*\\$'), '').replaceAll(RegExp('\\s*\\([^)]*\\)\\s*\\$'), '');
     const roman = 'IVXLCХ';
-    final romanClass = '[${roman}]';
+    final rc = '[${roman}]';
+    final base = '\\s*' + rc + '+(\\s*[-–—]\\s*' + rc + '+)?';
     final patterns = [
-      RegExp('\\s+(Том|Книга|Часть)\\s*${romanClass}+(\\s*[-–—]\\s*${romanClass}+)?[.:]?\\s*.*', caseSensitive: false),
-      RegExp('\\s+${romanClass}+(\\s*[-–—]\\s*${romanClass}+)?[.:]?\\s*$', caseSensitive: false),
-      RegExp('[-–—]\\s*${romanClass}+(\\s*[-–—]\\s*${romanClass}+)?\\s*$', caseSensitive: false),
-      RegExp(r'\s+\d+\s*[-–—:.]\s*$', caseSensitive: false),
-      RegExp(r'\s+\d+\s*$', caseSensitive: false),
-      RegExp(r'[.:]\s+.*$'),
+      RegExp('\\s+(Том|Книга|Часть)' + base + '[.:]?\\s*.*'),
+      RegExp('\\s+' + base + '[.:]?\\s*\\$'),
+      RegExp('[-–—]\\s*' + base + '\\s*\\$'),
+      RegExp('\\s+\\d+\\s*[-–—:.]\\s*\\$'),
+      RegExp('\\s+\\d+\\s*\\$'),
+      RegExp('[.:]\\s+.*\\$'),
     ];
     for (final p in patterns) {
       t = t.replaceFirst(p, '');
