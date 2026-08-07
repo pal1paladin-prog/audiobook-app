@@ -36,11 +36,17 @@ class AudiobookApp extends StatelessWidget {
           update: (_, dl, api, prev) => prev ?? PlayerService(api, dl),
         ),
       ],
-      child: MaterialApp(
-        title: 'аудиокниги',
-        debugShowCheckedModeBanner: false,
-        theme: AkTheme.dark,
-        home: const RootShell(),
+      child: Consumer<SettingsProvider>(
+        builder: (ctx, settings, _) {
+          return MaterialApp(
+            title: 'аудиокниги',
+            debugShowCheckedModeBanner: false,
+            theme: settings.theme == 'light' ? AkTheme.light : AkTheme.dark,
+            darkTheme: AkTheme.dark,
+            themeMode: settings.theme == 'system' ? ThemeMode.system : (settings.theme == 'light' ? ThemeMode.light : ThemeMode.dark),
+            home: const RootShell(),
+          );
+        },
       ),
     );
   }
