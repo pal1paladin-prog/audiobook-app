@@ -118,7 +118,6 @@ class PlayerOverlay extends StatelessWidget {
                     stream: context.read<PlayerService>().positionStream,
                     builder: (_, snap) {
                       final pos = snap.data ?? Duration.zero;
-                      final dur = context.read<PlayerService>().duration;
                       final maxMs = context.read<PlayerService>().duration.inMilliseconds.toDouble();
                       return maxMs > 0
                           ? Slider(
