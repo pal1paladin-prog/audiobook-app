@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'models/ak_models.dart';
+import '../models/ak_models.dart';
 
 class ApiException implements Exception {
   final String message;

@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import 'api/ak_api.dart';
-import 'models/ak_models.dart';
+import '../api/ak_api.dart';
+import '../models/ak_models.dart';
 
 class DownloadItem {
   final String trackPath;
