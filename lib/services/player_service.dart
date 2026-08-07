@@ -36,6 +36,11 @@ class PlayerService extends ChangeNotifier {
 
   AudioPlayer get raw => _player;
 
+  Stream<Duration> get positionStream => _player.positionStream;
+  Stream<Duration?> get durationStream => _player.durationStream;
+  Stream<PlayerState> get playerStateStream => _player.playerStateStream;
+  Stream<ProcessingState> get processingStateStream => _player.processingStateStream;
+
   Future<void> playBook(AkBook book, List<AkTrack> tracks, {int startIndex = 0}) async {
     _currentBook = book;
     _queue = tracks;
