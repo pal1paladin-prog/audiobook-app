@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../api/ak_api.dart';
-import '../models/ak_models.dart';
-import '../theme/ak_theme.dart';
+import '../../api/ak_api.dart';
+import '../../models/ak_models.dart';
+import '../../theme/ak_theme.dart';
 
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});

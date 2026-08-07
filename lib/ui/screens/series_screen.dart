@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../api/ak_api.dart';
-import '../models/ak_models.dart';
-import '../services/download_service.dart';
-import '../services/player_service.dart';
-import '../state/library_provider.dart';
-import '../theme/ak_theme.dart';
+import '../../api/ak_api.dart';
+import '../../models/ak_models.dart';
+import '../../services/download_service.dart';
+import '../../services/player_service.dart';
+import '../../state/library_provider.dart';
+import '../../theme/ak_theme.dart';
 import 'player_screen.dart';
 
 class SeriesScreen extends StatelessWidget {

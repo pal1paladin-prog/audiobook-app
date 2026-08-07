@@ -41,7 +41,7 @@ class AkTheme {
           backgroundColor: bg2,
           indicatorColor: accent2,
           labelTextStyle: WidgetStatePropertyAll(TextStyle(color: text, fontSize: 11)),
-          iconTheme: WidgetStatePropertyAll(WidgetStatePropertyAll(IconThemeData(color: dim))),
+          iconTheme: WidgetStatePropertyAll(IconThemeData(color: dim)),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,

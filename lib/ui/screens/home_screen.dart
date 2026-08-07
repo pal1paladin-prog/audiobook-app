@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../api/ak_api.dart';
-import '../models/ak_models.dart';
-import '../state/library_provider.dart';
-import '../state/settings_provider.dart';
-import '../services/player_service.dart';
-import '../services/download_service.dart';
-import '../theme/ak_theme.dart';
+import '../../api/ak_api.dart';
+import '../../models/ak_models.dart';
+import '../../state/library_provider.dart';
+import '../../state/settings_provider.dart';
+import '../../services/player_service.dart';
+import '../../services/download_service.dart';
+import '../../theme/ak_theme.dart';
 import 'player_screen.dart';
 import 'series_screen.dart';
 

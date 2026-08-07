@@ -29,12 +29,6 @@ class PlayerService extends ChangeNotifier {
 
   AudioPlayer get raw => _player;
 
-  void _sync() {
-    _position = _player.position;
-    _duration = _player.duration ?? Duration.zero;
-    _playing = _player.playing;
-  }
-
   Future<void> playBook(AkBook book, List<AkTrack> tracks, {int startIndex = 0}) async {
     _currentBook = book;
     _queue = tracks;

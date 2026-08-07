@@ -60,15 +60,18 @@ class LibraryProvider extends ChangeNotifier {
   String _baseTitle(String title) {
     var t = title.replaceAll(RegExp(r'\s*/\s*.*$'), '').replaceAll(RegExp(r'\s*\([^)]*\)\s*$'), '');
     const roman = 'IVXLCХ';
-    t = t
-        .replaceFirst(RegExp('\\s+(Том|Книга|Часть)\\s*[$roman]+(\\s*[-–—]\\s*[$roman]+)?[.:]?\\s*.*', caseSensitive: false), '')
-        .replaceFirst(RegExp('\\s+[$roman]+(\\s*[-–—]\\s*[$roman]+)?[.:]?\\s*$', caseSensitive: false), '')
-        .replaceFirst(RegExp('[-–—]\\s*[$roman]+(\\s*[-–—]\\s*[$roman]+)?\\s*$', caseSensitive: false), '')
-        .replaceFirst(RegExp(r'\s+\d+\s*[-–—:.]\s*$', caseSensitive: false), '')
-        .replaceFirst(RegExp(r'\s+\d+\s*$', caseSensitive: false), '')
-        .replaceFirst(RegExp(r'[.:]\s+.*$'), '')
-        .trim();
-    return t;
+    final patterns = [
+      RegExp('\\s+(Том|Книга|Часть)\\s*[$roman]+(\\s*[-–—]\\s*[$roman]+)?[.:]?\\s*.*', caseSensitive: false),
+      RegExp('\\s+[$roman]+(\\s*[-–—]\\s*[$roman]+)?[.:]?\\s*$', caseSensitive: false),
+      RegExp('[-–—]\\s*[$roman]+(\\s*[-–—]\\s*[$roman]+)?\\s*$', caseSensitive: false),
+      RegExp(r'\s+\d+\s*[-–—:.]\s*$', caseSensitive: false),
+      RegExp(r'\s+\d+\s*$', caseSensitive: false),
+      RegExp(r'[.:]\s+.*$'),
+    ];
+    for (final p in patterns) {
+      t = t.replaceFirst(p, '');
+    }
+    return t.trim();
   }
 
   List<SeriesGroup> get grouped {

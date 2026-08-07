@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../api/ak_api.dart';
-import '../models/ak_models.dart';
-import '../state/library_provider.dart';
-import '../services/player_service.dart';
-import '../services/download_service.dart';
-import '../theme/ak_theme.dart';
+import '../../api/ak_api.dart';
+import '../../models/ak_models.dart';
+import '../../state/library_provider.dart';
+import '../../services/player_service.dart';
+import '../../services/download_service.dart';
+import '../../theme/ak_theme.dart';
 
 class PlayerScreen extends StatefulWidget {
   final AkBook book;
@@ -44,9 +44,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
         await player.playBook(widget.book, tracks);
       }
     } catch (e) {
-      if (mounted) setState(() {
-        _err = '$e';
-        _loading = false;
+      if (mounted) {
+        setState(() {
+          _err = '$e';
+          _loading = false;
+        });
+      }
       });
     }
   }
@@ -207,7 +210,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
             leading: Text('${i + 1}', style: TextStyle(color: active ? AkTheme.accent2 : AkTheme.dim)),
             title: Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: active ? AkTheme.accent2 : AkTheme.text, fontSize: 12)),
-            trailing: Text(_fmt((t.size / 1024 / 1024)), style: const TextStyle(color: AkTheme.dim, fontSize: 10)),
+            trailing: Text(_fmt(t.size ~/ 1024 ~/ 1024), style: const TextStyle(color: AkTheme.dim, fontSize: 10)),
             onTap: () => player.seek(Duration.zero),
             selected: active,
             selectedTileColor: AkTheme.bg3,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/download_service.dart';
-import '../theme/ak_theme.dart';
+import '../../services/download_service.dart';
+import '../../theme/ak_theme.dart';
 
 class DownloadsScreen extends StatelessWidget {
   const DownloadsScreen({super.key});
