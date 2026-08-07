@@ -61,15 +61,18 @@ class AkTheme {
           secondary: Color(0xFF6b5e48),
           surface: Color(0xFFffffff),
           error: Color(0xFFa05050),
+          onSurface: Color(0xFF1c1a18),
         ),
         cardColor: const Color(0xEEffffff),
         dividerColor: const Color(0xFFddd8cf),
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Color(0xFF1c1a18), fontSize: 13, fontFamily: 'monospace'),
-          bodySmall: TextStyle(color: Color(0xFF5c5854), fontSize: 11, fontFamily: 'monospace'),
-          titleMedium: TextStyle(color: Color(0xFF2a2826), fontSize: 14, fontFamily: 'monospace'),
-        ),
         appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFfaf7f2), foregroundColor: Color(0xFF2a2826), elevation: 0),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Color(0xFF1c1a18)),
+          bodyMedium: TextStyle(color: Color(0xFF1c1a18)),
+          bodySmall: TextStyle(color: Color(0xFF5c5854)),
+          titleMedium: TextStyle(color: Color(0xFF2a2826)),
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFF5c5854)),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: Color(0xFFfaf7f2),
           indicatorColor: Color(0xFF6b5e48),
