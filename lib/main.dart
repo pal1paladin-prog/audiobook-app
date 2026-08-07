@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:just_audio_background/just_audio_background.dart';
-import 'package:audio_session/audio_session.dart';
 import 'api/ak_api.dart';
 import 'services/download_service.dart';
 import 'services/player_service.dart';
@@ -12,15 +10,9 @@ import 'ui/screens/home_screen.dart';
 import 'ui/screens/settings_screen.dart';
 import 'ui/screens/downloads_screen.dart';
 import 'ui/screens/activity_screen.dart';
-import 'ui/screens/player_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await just_audio_background.init(
-    androidNotificationChannelId: 'com.pal.audiobook.background',
-    androidNotificationChannelName: 'Аудиокниги',
-    androidNotificationOngoing: true,
-  );
   final settings = SettingsProvider();
   await settings.load();
   final api = AkApi(baseUrl: 'https://192.168.0.142/audio-kniga/ak.php');
@@ -70,7 +62,6 @@ class RootShell extends StatefulWidget {
 class _RootShellState extends State<RootShell> {
   int _idx = 0;
   static const _screens = [HomeScreen(), DownloadsScreen(), ActivityScreen(), SettingsScreen()];
-  final GlobalKey<PlayerOverlayState> _playerKey = GlobalKey<PlayerOverlayState>();
 
   @override
   Widget build(BuildContext context) {
@@ -98,27 +89,8 @@ class _RootShellState extends State<RootShell> {
   }
 }
 
-class PlayerOverlay extends StatefulWidget {
+class PlayerOverlay extends StatelessWidget {
   const PlayerOverlay({super.key});
-  @override
-  State<PlayerOverlay> createState() => _PlayerOverlayState();
-}
-
-class _PlayerOverlayState extends State<PlayerOverlay> {
-  final PlayerService _player = PlayerService(null, null);
-  bool _visible = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initAudioSession();
-  }
-
-  Future<void> _initAudioSession() async {
-    final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.music());
-    await session.setActive(true);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,28 +115,26 @@ class _PlayerOverlayState extends State<PlayerOverlay> {
                 children: [
                   // Progress bar
                   StreamBuilder<Duration>(
-                    stream: _player.positionStream,
-                    builder: (_, snap) => SliderTheme(
-                      data: SliderThemeData(
-                        trackHeight: 3,
-                        activeTrackColor: Theme.of(context).colorScheme.primary,
-                        inactiveTrackColor: Colors.grey.withOpacity(0.3),
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                        overlayShape: SliderComponentShape.noOverlay,
-                      ),
-                      child: Slider(
-                        value: (_player.position.inMilliseconds.toDouble()).clamp(0, _player.duration.inMilliseconds.toDouble()),
-                        max: _player.duration.inMilliseconds.toDouble() > 0 ? _player.duration.inMilliseconds.toDouble() : 1,
-                        onChanged: (v) => context.read<PlayerService>().seek(Duration(milliseconds: v.round())),
-                      ),
+                    stream: context.read<PlayerService>().positionStream,
+                    builder: (_, snap) {
+                      final pos = snap.data ?? Duration.zero;
+                      final dur = context.read<PlayerService>().duration;
+                      final maxMs = context.read<PlayerService>().duration.inMilliseconds.toDouble();
+                      return maxMs > 0
+                          ? Slider(
+                              value: context.read<PlayerService>().position.inMilliseconds.toDouble().clamp(0, maxMs),
+                              max: maxMs,
+                              activeColor: Theme.of(context).colorScheme.primary,
+                              onChanged: maxMs > 0 ? (v) => context.read<PlayerService>().seek(Duration(milliseconds: v.round())) : null,
+                            )
+                          : const Slider(value: 0, max: 1, onChanged: null),
                     ),
                   ),
-                  // Controls row
+                  // Controls
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       children: [
-                        // Track info
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,42 +150,30 @@ class _PlayerOverlayState extends State<PlayerOverlay> {
                               Consumer<PlayerService>(
                                 builder: (_, p, _) => Text(
                                   p.currentBook?.author ?? '',
-                                  style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+                                  style: const TextStyle(fontSize: 11, color: Colors.grey[400]),
                                   maxLines: 1, overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        // Controls
                         Row(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.skip_previous, size: 28),
-                              color: Colors.white,
-                              onPressed: () => context.read<PlayerService>().prev(),
-                            ),
-                            Container(
-                              width: 56, height: 56,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  context.read<PlayerService>().playing ? Icons.pause : Icons.play_arrow,
-                                  size: 28,
+                            IconButton(icon: const Icon(Icons.skip_previous), color: Colors.white, onPressed: () => context.read<PlayerService>().prev()),
+                            const SizedBox(width: 8),
+                            CircleAvatar(
+                              radius: 28,
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              child: Consumer<PlayerService>(
+                                builder: (_, p, _) => IconButton(
+                                  icon: Icon(p.playing ? Icons.pause : Icons.play_arrow, size: 28, color: Colors.white),
+                                  onPressed: () => context.read<PlayerService>().playPause(),
                                 ),
-                                color: Colors.white,
-                                onPressed: () => context.read<PlayerService>().playPause(),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.skip_next, size: 28),
-                              color: Colors.white,
-                              onPressed: () => context.read<PlayerService>().next(),
-                            ),
+                            const SizedBox(width: 8),
+                            IconButton(icon: const Icon(Icons.skip_next), color: Colors.white, onPressed: () => context.read<PlayerService>().next()),
                           ],
                         ),
                       ],
@@ -224,9 +182,9 @@ class _PlayerOverlayState extends State<PlayerOverlay> {
                 ),
               ),
             ),
-          );
-        },
-      );
-    });
+          ),
+        );
+      },
+    );
   }
 }
