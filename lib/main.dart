@@ -108,8 +108,9 @@ class PlayerOverlay extends StatelessWidget {
               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, -2))],
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SafeArea(
-              top: false,
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -127,7 +128,6 @@ class PlayerOverlay extends StatelessWidget {
                             )
                           : const Slider(value: 0, max: 1, onChanged: null),
                     ),
-                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
