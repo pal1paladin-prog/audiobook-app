@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:audio_session/audio_session.dart';
 import '../models/ak_models.dart';
 import '../api/ak_api.dart';
 import 'download_service.dart';
@@ -8,6 +9,12 @@ class PlayerService extends ChangeNotifier {
   final AudioPlayer _player = AudioPlayer();
   final AkApi api;
   final DownloadService downloads;
+
+  Future<void> _initAudioSession() async {
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.music());
+    await session.setActive(true);
+  }
 
   List<AkTrack> _queue = [];
   int _index = -1;
@@ -88,6 +95,7 @@ class PlayerService extends ChangeNotifier {
   }
 
   void listen() {
+    _initAudioSession();
     _player.positionStream.listen((p) {
       _position = p;
       notifyListeners();
