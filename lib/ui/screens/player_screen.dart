@@ -50,7 +50,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
           _loading = false;
         });
       }
-      });
     }
   }
 
