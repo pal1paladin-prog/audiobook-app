@@ -113,7 +113,6 @@ class PlayerOverlay extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Progress bar
                   StreamBuilder<Duration>(
                     stream: context.read<PlayerService>().positionStream,
                     builder: (_, snap) {
@@ -129,7 +128,6 @@ class PlayerOverlay extends StatelessWidget {
                           : const Slider(value: 0, max: 1, onChanged: null),
                     ),
                   ),
-                  // Controls
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
