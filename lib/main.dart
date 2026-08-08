@@ -10,12 +10,13 @@ import 'ui/screens/home_screen.dart';
 import 'ui/screens/settings_screen.dart';
 import 'ui/screens/downloads_screen.dart';
 import 'ui/screens/activity_screen.dart';
+import 'config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final settings = SettingsProvider();
   await settings.load();
-  final api = AkApi(baseUrl: 'https://192.168.0.142/audio-kniga/ak.php');
+  final api = AkApi(baseUrl: settings.baseUrl.isEmpty ? 'https://192.168.0.142/audio-kniga/ak.php' : settings.baseUrl);
   runApp(AudiobookApp(settings: settings, api: api));
 }
 
@@ -40,7 +41,7 @@ class AudiobookApp extends StatelessWidget {
       child: Consumer<SettingsProvider>(
         builder: (ctx, settings, _) {
           return MaterialApp(
-            title: 'аудиокниги',
+            title: '$kAppName v$kAppVersion',
             debugShowCheckedModeBanner: false,
             theme: AkTheme.light,
             darkTheme: AkTheme.dark,

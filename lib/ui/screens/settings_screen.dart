@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../config.dart';
 import '../../state/settings_provider.dart';
 import '../../theme/ak_theme.dart';
 
@@ -67,7 +68,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 24),
           const _Section('О приложении'),
-          const Text('аудиокниги v1.0', style: TextStyle(color: AkTheme.dim)),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AkTheme.bg3,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AkTheme.border),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, color: AkTheme.accent2, size: 20),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(kAppName, style: TextStyle(color: AkTheme.text, fontSize: 14, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 2),
+                    Text('Версия $kAppVersion', style: TextStyle(color: AkTheme.dim, fontSize: 12)),
+                  ],
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 8),
           const Text('Кэширование + фоновый плеер + Tailscale',
               style: TextStyle(color: AkTheme.dim, fontSize: 11)),

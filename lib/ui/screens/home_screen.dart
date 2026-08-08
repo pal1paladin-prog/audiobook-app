@@ -7,7 +7,7 @@ import '../../state/library_provider.dart';
 import '../../state/settings_provider.dart';
 import '../../services/player_service.dart';
 import '../../services/download_service.dart';
-import '../../theme/ak_theme.dart';
+import '../../config.dart';
 import 'player_screen.dart';
 import 'series_screen.dart';
 
@@ -35,7 +35,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final settings = context.watch<SettingsProvider>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('аудиокниги', style: TextStyle(fontFamily: 'monospace', letterSpacing: 0.14)),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('аудиокниги', style: TextStyle(fontFamily: 'monospace', letterSpacing: 0.14, fontSize: 14)),
+            Text('v$kAppVersion', style: TextStyle(fontSize: 10, color: AkTheme.dim, fontFamily: 'monospace')),
+          ],
+        ),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: () => lib.load(), tooltip: 'Обновить'),
         ],
