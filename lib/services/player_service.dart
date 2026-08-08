@@ -10,6 +10,11 @@ import '../ui/app_toast.dart';
 import 'download_service.dart';
 import 'audio_handler.dart';
 
+/// Плеер поверх just_audio + audio_service.
+///
+/// Треки книги загружаются одним [ConcatenatingAudioSource]-плейлистом: на iOS
+/// переход между треками выполняется нативно (без остановки/старта с Dart-стороны),
+/// поэтому аудио-сессия не деактивируется и в фоне звук не пропадает.
 class PlayerService extends ChangeNotifier {
   static const _prefBook = 'lastBookPath';
   static const _prefIndex = 'lastTrackIndex';
@@ -22,6 +27,7 @@ class PlayerService extends ChangeNotifier {
 
   List<AkTrack> _queue = [];
   int _index = -1;
+  int _lastRestoredIndex = -1;
   AkBook? _currentBook;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
@@ -53,30 +59,32 @@ class PlayerService extends ChangeNotifier {
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
   Stream<ProcessingState> get processingStateStream => _player.processingStateStream;
 
+  Uri _trackUri(String trackPath) {
+    final local = downloads.localPath(trackPath);
+    return local.isNotEmpty ? Uri.file(local) : api.streamUri(trackPath);
+  }
+
+  List<AudioSource> _buildSources(List<AkTrack> tracks) =>
+      [for (final t in tracks) AudioSource.uri(_trackUri(t.path))];
+
   Future<void> playBook(AkBook book, List<AkTrack> tracks, {int startIndex = 0}) async {
     _currentBook = book;
     _queue = tracks;
-    await _playIndex(startIndex);
-  }
-
-  Future<void> _playIndex(int i) async {
-    if (i < 0 || i >= _queue.length) return;
-    _index = i;
-    final track = _queue[i];
-    final local = downloads.localPath(track.path);
-    final uri = local.isNotEmpty ? Uri.file(local) : api.streamUri(track.path);
+    if (tracks.isEmpty) return;
+    final index = startIndex.clamp(0, tracks.length - 1);
     try {
       final session = await AudioSession.instance;
       await session.setActive(true);
-      await _player.setUrl(uri.toString());
+      await _player.setAudioSource(ConcatenatingAudioSource(
+        children: _buildSources(tracks),
+        useLazyPreparation: true,
+      ), initialIndex: index);
       _updateMediaItem();
       await _player.play();
-      await session.setActive(true);
-      await _restoreProgress(track.path);
-      saveState();
       _startSaving();
+      saveState();
     } catch (e) {
-      showToast('Не удалось воспроизвести «${track.name}»', error: true);
+      showToast('Не удалось воспроизвести «${book.title}»', error: true);
     }
     notifyListeners();
   }
@@ -95,7 +103,7 @@ class PlayerService extends ChangeNotifier {
     if (i == _index) {
       await _player.seek(Duration.zero);
     } else {
-      await _playIndex(i);
+      await _player.seek(Duration.zero, index: i);
     }
   }
 
@@ -130,14 +138,14 @@ class PlayerService extends ChangeNotifier {
   }
 
   Future<void> next() async {
-    if (_index < _queue.length - 1) await _playIndex(_index + 1);
+    if (_player.hasNext) await _player.seekToNext();
   }
 
   Future<void> prev() async {
     if (_player.position.inSeconds > 3) {
       await _player.seek(Duration.zero);
-    } else if (_index > 0) {
-      await _playIndex(_index - 1);
+    } else if (_player.hasPrevious) {
+      await _player.seekToPrevious();
     }
   }
 
@@ -186,16 +194,19 @@ class PlayerService extends ChangeNotifier {
       final tracks = await api.bookTracks(bookPath);
       if (tracks.isEmpty) return;
       final index = (p.getInt(_prefIndex) ?? 0).clamp(0, tracks.length - 1);
+      final pos = p.getDouble(_prefPos) ?? 0;
       _currentBook = book.first;
       _queue = tracks;
       _index = index;
-      final track = currentTrack!;
-      final local = downloads.localPath(track.path);
-      final uri = local.isNotEmpty ? Uri.file(local) : api.streamUri(track.path);
-      await _player.setUrl(uri.toString());
+      await _player.setAudioSource(ConcatenatingAudioSource(
+        children: _buildSources(tracks),
+        useLazyPreparation: true,
+      ), initialIndex: index);
       _updateMediaItem();
-      final pos = p.getDouble(_prefPos) ?? 0;
-      if (pos > 2) await _player.seek(Duration(seconds: pos.round()));
+      _lastRestoredIndex = index;
+      if (pos > 2 && _player.duration != null) {
+        await _player.seek(Duration(seconds: pos.round()));
+      }
       if (p.getBool(_prefPlaying) ?? false) {
         final session = await AudioSession.instance;
         await session.setActive(true);
@@ -215,11 +226,23 @@ class PlayerService extends ChangeNotifier {
       _duration = d ?? Duration.zero;
       notifyListeners();
     });
+    _player.currentIndexStream.listen((idx) {
+      if (idx == null || idx < 0 || idx >= _queue.length) return;
+      _index = idx;
+      _updateMediaItem();
+      notifyListeners();
+    });
     _player.playerStateStream.listen((s) {
       _playing = s.playing;
-      if (s.processingState == ProcessingState.completed) {
+      if (s.processingState == ProcessingState.ready && _lastRestoredIndex != _index) {
+        _lastRestoredIndex = _index;
+        if (currentTrack != null) {
+          _restoreProgress(currentTrack!.path);
+        }
+      }
+      if (s.processingState == ProcessingState.completed && !_player.hasNext) {
         saveProgress();
-        next();
+        unawaited(_player.pause());
       }
       notifyListeners();
     });

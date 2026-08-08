@@ -5,6 +5,7 @@ import '../../models/ak_models.dart';
 import '../../services/player_service.dart';
 import '../../state/library_provider.dart';
 import '../../theme/ak_theme.dart';
+import '../app_toast.dart';
 import 'player_screen.dart';
 
 class SeriesScreen extends StatelessWidget {
@@ -23,7 +24,16 @@ class SeriesScreen extends StatelessWidget {
           Text('Книг: ${group.books.length}', style: TextStyle(color: AkTheme.dim)),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () => context.read<PlayerService>().playBook(group.books.first, []),
+            onPressed: () async {
+              final first = group.books.first;
+              try {
+                final tracks = await context.read<AkApi>().bookTracks(first.path);
+                if (!context.mounted) return;
+                await context.read<PlayerService>().playBook(first, tracks);
+              } catch (_) {
+                showToast('Не удалось загрузить треки', error: true);
+              }
+            },
             icon: const Icon(Icons.play_arrow),
             label: const Text('Слушать с первой'),
             style: ElevatedButton.styleFrom(backgroundColor: AkTheme.accent2, foregroundColor: Colors.black),
