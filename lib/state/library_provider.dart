@@ -59,17 +59,14 @@ class LibraryProvider extends ChangeNotifier {
 
   String _baseTitle(String title) {
     var t = title;
-    // Remove author after " / "
     t = t.replaceAll(RegExp(r'\s*/\s*.*$'), '');
-    // Remove parenthetical notes
     t = t.replaceAll(RegExp(r'\s*\([^)]*\)\s*$'), '');
     const roman = 'IVXLCХ';
     final rc = '[$roman]';
-    // Aggressively strip volume/chapter/part numbers
     final patterns = [
-      RegExp('\\s+(Том|Книга|Часть| Book|Part|Vol\\.?)+\\s*$rc+(\\s*[-–—]\\s*$rc+)?[.:]?\\s*.*', caseSensitive: false),
-      RegExp('\\s+$rc+(\\s*[-–—]\\s*$rc+)?[.:]?\\s*$'),
-      RegExp('[-–—]\\s*$rc+(\\s*[-–—]\\s*$rc+)?\\s*$'),
+      RegExp('\\s+(Том|Книга|Часть| Book|Part|Vol\\.?)\\s+$rc+(\\s*[-–—]\\s+$rc+)?[.:]?\\s*.*'),
+      RegExp('\\s+$rc+(\\s*[-–—]\\s+$rc+)?[.:]?\\s*$'),
+      RegExp('[-–—]\\s+$rc+(\\s*[-–—]\\s+$rc+)?\\s*$'),
       RegExp('\\s+\\d+\\s*[-–—:.]\\s*.*$'),
       RegExp('\\s+\\d+\\s*$'),
       RegExp('[.:]\\s+.*$'),
