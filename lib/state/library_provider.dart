@@ -64,14 +64,14 @@ class LibraryProvider extends ChangeNotifier {
     const roman = 'IVXLCХ';
     final rc = '[$roman]';
     final patterns = [
-      RegExp('\\s+(Том|Книга|Часть| Book|Part|Vol\\.?)\\s+$rc+(\\s*[-–—]\\s+$rc+)?[.:]?\\s*.*'),
-      RegExp('\\s+$rc+(\\s*[-–—]\\s+$rc+)?[.:]?\\s*$'),
-      RegExp('[-–—]\\s+$rc+(\\s*[-–—]\\s+$rc+)?\\s*$'),
-      RegExp('\\s+\\d+\\s*[-–—:.]\\s*.*$'),
-      RegExp('\\s+\\d+\\s*$'),
-      RegExp('[.:]\\s+.*$'),
-      RegExp('\\s*#\\d+\\s*$'),
-      RegExp('\\s*-\\s*Глава\\s+.*$', caseSensitive: false),
+      RegExp(r'\s+(Том|Книга|Часть| Book|Part|Vol\.?)\s+${rc}+(\s*[-–—]\s+${rc}+)?[.:]?\s*.*'),
+      RegExp(r'\s+${rc}+(\s*[-–—]\s+${rc}+)?[.:]?\s*$'),
+      RegExp(r'[-–—]\s+${rc}+(\s*[-–—]\s+${rc}+)?\s*$'),
+      RegExp(r'\s+\d+\s*[-–—:.]\s*.*$'),
+      RegExp(r'\s+\d+\s*$'),
+      RegExp(r'[.:]\s+.*$'),
+      RegExp(r'\s*#\d+\s*$'),
+      RegExp(r'\s*-\s*Глава\s+.*$', caseSensitive: false),
     ];
     for (final p in patterns) {
       t = t.replaceFirst(p, '');
