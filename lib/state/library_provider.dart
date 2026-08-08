@@ -64,9 +64,9 @@ class LibraryProvider extends ChangeNotifier {
     const roman = 'IVXLCХ';
     final rc = '[$roman]';
     final patterns = [
-      RegExp(r'\s+(Том|Книга|Часть| Book|Part|Vol\.?)\s+${rc}+(\s*[-–—]\s+${rc}+)?[.:]?\s*.*'),
-      RegExp(r'\s+${rc}+(\s*[-–—]\s+${rc}+)?[.:]?\s*$'),
-      RegExp(r'[-–—]\s+${rc}+(\s*[-–—]\s+${rc}+)?\s*$'),
+      RegExp(r'\s+(Том|Книга|Часть| Book|Part|Vol\.?)\s+' + rc + r'+(\s*[-–—]\s+' + rc + r'+)?[.:]?\s*.*'),
+      RegExp(r'\s+' + rc + r'+(\s*[-–—]\s+' + rc + r'+)?[.:]?\s*$'),
+      RegExp(r'[-–—]\s+' + rc + r'+(\s*[-–—]\s+' + rc + r'+)?\s*$'),
       RegExp(r'\s+\d+\s*[-–—:.]\s*.*$'),
       RegExp(r'\s+\d+\s*$'),
       RegExp(r'[.:]\s+.*$'),
