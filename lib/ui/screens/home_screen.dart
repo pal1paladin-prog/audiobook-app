@@ -7,6 +7,7 @@ import '../../state/library_provider.dart';
 import '../../state/settings_provider.dart';
 import '../../services/player_service.dart';
 import '../../services/download_service.dart';
+import '../../theme/ak_theme.dart';
 import '../../config.dart';
 import 'player_screen.dart';
 import 'series_screen.dart';
@@ -180,7 +181,7 @@ class _GroupTile extends StatelessWidget {
           Text(group.display, maxLines: 2, overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: AkTheme.text, fontSize: 11)),
           Text(group.author, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AkTheme.dim, fontSize: 10)),
+              style: TextStyle(color: AkTheme.dim, fontSize: 10)),
         ],
       ),
     );
