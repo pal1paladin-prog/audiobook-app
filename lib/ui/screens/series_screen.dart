@@ -30,9 +30,9 @@ class SeriesScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(backgroundColor: AkTheme.accent2, foregroundColor: Colors.black),
           ),
           const SizedBox(height: 16),
-          ...group.books.map((b) => Card(
-                color: AkTheme.card,
-                child: ListTile(
+              ...group.books.map((b) => Card(
+                  color: Theme.of(context).cardColor,
+                  child: ListTile(
                   title: Text(b.title, style: const TextStyle(color: AkTheme.text, fontSize: 13)),
                   subtitle: b.author.isNotEmpty ? Text(b.author, style: const TextStyle(color: AkTheme.dim, fontSize: 11)) : null,
                   trailing: IconButton(

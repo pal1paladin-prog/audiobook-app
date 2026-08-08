@@ -153,12 +153,12 @@ class _BookRow extends StatelessWidget {
           Navigator.push(context, MaterialPageRoute(builder: (_) => PlayerScreen(book: first)));
         }
       },
-      child: Container(
+        child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: AkTheme.card,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AkTheme.border),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,7 +241,7 @@ class _Cover extends StatelessWidget {
       child: Container(
         width: 84,
         height: 122,
-        color: AkTheme.bg3,
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: coverPath.isNotEmpty
             ? CachedNetworkImage(
                 imageUrl: api.coverUri(coverPath).toString(),
