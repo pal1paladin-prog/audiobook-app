@@ -5,8 +5,6 @@ import '../../api/ak_api.dart';
 import '../../models/ak_models.dart';
 import '../../state/library_provider.dart';
 import '../../state/settings_provider.dart';
-import '../../services/player_service.dart';
-import '../../services/download_service.dart';
 import '../../theme/ak_theme.dart';
 import '../../config.dart';
 import 'player_screen.dart';
@@ -124,96 +122,188 @@ class _HomeScreenState extends State<HomeScreen> {
       }).toList();
     }
     if (groups.isEmpty) return const Center(child: Text('Нет книг', style: TextStyle(color: AkTheme.dim)));
-    return GridView.builder(
-      padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 170, childAspectRatio: 0.55, crossAxisSpacing: 12, mainAxisSpacing: 12),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
       itemCount: groups.length,
-      itemBuilder: (ctx, i) => _GroupTile(group: groups[i]),
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (ctx, i) => _BookRow(group: groups[i]),
     );
   }
 }
 
-class _GroupTile extends StatelessWidget {
+class _BookRow extends StatelessWidget {
   final SeriesGroup group;
-  const _GroupTile({required this.group});
+  const _BookRow({required this.group});
 
   @override
   Widget build(BuildContext context) {
     final api = context.read<AkApi>();
     final isMulti = group.books.length > 1;
+    final first = group.books.first;
+    final genre = first.genre;
+    final narrator = isMulti ? _joinNarrators(group.books) : first.narrator;
+    final durationSec = isMulti ? _sumDurations(group.books) : first.durationSec;
+    final seriesName = isMulti ? '' : first.series;
+
     return GestureDetector(
       onTap: () {
         if (isMulti) {
           Navigator.push(context, MaterialPageRoute(builder: (_) => SeriesScreen(group: group)));
         } else {
-          _openBook(context, group.books.first);
+          Navigator.push(context, MaterialPageRoute(builder: (_) => PlayerScreen(book: first)));
         }
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Cover image
-          Expanded(
-            flex: 3,
-            child: Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AkTheme.bg3,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AkTheme.border),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: group.coverPath.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: api.coverUri(group.coverPath).toString(),
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => Center(child: Icon(isMulti ? Icons.menu_book : Icons.book, size: 40, color: AkTheme.dim)),
-                        )
-                      : Center(child: Icon(isMulti ? Icons.menu_book : Icons.book, size: 40, color: AkTheme.dim)),
-                ),
-                if (isMulti)
-                  Positioned(
-                    bottom: 6,
-                    right: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(color: AkTheme.accent2, borderRadius: BorderRadius.circular(10)),
-                      child: Text('${group.books.length}', style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          // Title
-          Text(group.display, maxLines: 2, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AkTheme.text, fontSize: 11, fontWeight: FontWeight.w500)),
-          // Author
-          Text(group.author, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: AkTheme.dim, fontSize: 10)),
-          // Description (first book's description)
-          if (!isMulti && group.books.first.description.isNotEmpty)
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AkTheme.card,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AkTheme.border),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _Cover(coverPath: group.coverPath, isMulti: isMulti, api: api),
+            const SizedBox(width: 12),
             Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  group.books.first.description,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: AkTheme.dim, fontSize: 9, height: 1.2),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          group.display,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: AkTheme.text, fontSize: 14, fontWeight: FontWeight.w600, height: 1.2),
+                        ),
+                      ),
+                      if (isMulti) _CountBadge(count: group.books.length),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  _InfoLine(icon: Icons.category_outlined, text: genre),
+                  _InfoLine(icon: Icons.person_outline, text: group.author),
+                  if (narrator.isNotEmpty) _InfoLine(icon: Icons.mic_none, text: narrator),
+                  if (durationSec != null) _InfoLine(icon: Icons.schedule, text: _formatDuration(durationSec)),
+                  if (seriesName.isNotEmpty && !isMulti) _InfoLine(icon: Icons.library_books_outlined, text: 'Цикл «$seriesName»'),
+                ],
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  void _openBook(BuildContext ctx, AkBook book) {
-    Navigator.push(ctx, MaterialPageRoute(builder: (_) => PlayerScreen(book: book)));
+  String _joinNarrators(List<AkBook> books) {
+    final s = <String>{};
+    for (final b in books) {
+      if (b.narrator.trim().isNotEmpty) s.add(b.narrator.trim());
+    }
+    return s.join(', ');
+  }
+
+  int? _sumDurations(List<AkBook> books) {
+    int total = 0;
+    bool any = false;
+    for (final b in books) {
+      final d = b.durationSec;
+      if (d != null) {
+        total += d;
+        any = true;
+      }
+    }
+    return any ? total : null;
+  }
+
+  String _formatDuration(int sec) {
+    if (sec < 60) return '$sec с';
+    final h = sec ~/ 3600;
+    final m = (sec % 3600) ~/ 60;
+    if (h > 0) return '$h ч $m мин';
+    return '$m мин';
+  }
+}
+
+class _Cover extends StatelessWidget {
+  final String coverPath;
+  final bool isMulti;
+  final AkApi api;
+  const _Cover({required this.coverPath, required this.isMulti, required this.api});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: 84,
+        height: 122,
+        color: AkTheme.bg3,
+        child: coverPath.isNotEmpty
+            ? CachedNetworkImage(
+                imageUrl: api.coverUri(coverPath).toString(),
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => _FallbackIcon(isMulti: isMulti),
+              )
+            : _FallbackIcon(isMulti: isMulti),
+      ),
+    );
+  }
+}
+
+class _FallbackIcon extends StatelessWidget {
+  final bool isMulti;
+  const _FallbackIcon({required this.isMulti});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Icon(isMulti ? Icons.menu_book : Icons.book, size: 32, color: AkTheme.dim));
+  }
+}
+
+class _InfoLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _InfoLine({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    if (text.trim().isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 14, color: AkTheme.accent2),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: AkTheme.text.withValues(alpha: 0.85), fontSize: 12, height: 1.3),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CountBadge extends StatelessWidget {
+  final int count;
+  const _CountBadge({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(color: AkTheme.accent2, borderRadius: BorderRadius.circular(12)),
+      child: Text('$count', style: const TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.w700)),
+    );
   }
 }

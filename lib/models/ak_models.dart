@@ -9,6 +9,8 @@ class AkBook {
   final String coverPath;
   final bool hasCover;
   final String genre;
+  final String duration;
+  final int? durationSec;
 
   AkBook({
     required this.dir,
@@ -21,6 +23,8 @@ class AkBook {
     required this.coverPath,
     required this.hasCover,
     required this.genre,
+    this.duration = '',
+    this.durationSec,
   });
 
   factory AkBook.fromJson(Map<String, dynamic> j) => AkBook(
@@ -34,6 +38,8 @@ class AkBook {
         coverPath: j['cover_path'] ?? '',
         hasCover: j['has_cover'] ?? false,
         genre: j['genre'] ?? '',
+        duration: j['duration'] ?? '',
+        durationSec: (j['duration_sec'] as num?)?.toInt(),
       );
 }
 
