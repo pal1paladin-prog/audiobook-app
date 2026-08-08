@@ -40,7 +40,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const _Section('Сервер'),
           TextField(
             controller: _url,
-            style: const TextStyle(color: AkTheme.text),
             decoration: const InputDecoration(
               labelText: 'Адрес сервера',
               hintText: 'http://100.x.x.x/audio-kniga или https://example.ts.net/audio-kniga',
@@ -50,7 +49,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           TextField(
             controller: _user,
-            style: const TextStyle(color: AkTheme.text),
             decoration: const InputDecoration(labelText: 'Имя пользователя'),
             onChanged: (v) => s.setUser(v.trim().isEmpty ? 'default' : v.trim()),
           ),
