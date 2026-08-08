@@ -64,7 +64,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 hintText: 'Поиск…',
                 prefixIcon: const Icon(Icons.search, color: AkTheme.dim),
                 suffixIcon: _query.isNotEmpty
-                    ? IconButton(icon: const Icon(Icons.clear), onPressed: () => setState(() => _query = ''))
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _query = '';
+                            _searchCtrl.clear();
+                          });
+                        },
+                      )
                     : null,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -119,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GridView.builder(
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 160, childAspectRatio: 0.62, crossAxisSpacing: 12, mainAxisSpacing: 12),
+          maxCrossAxisExtent: 170, childAspectRatio: 0.55, crossAxisSpacing: 12, mainAxisSpacing: 12),
       itemCount: groups.length,
       itemBuilder: (ctx, i) => _GroupTile(group: groups[i]),
     );
@@ -145,7 +153,9 @@ class _GroupTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Cover image
           Expanded(
+            flex: 3,
             child: Stack(
               children: [
                 Container(
@@ -178,10 +188,26 @@ class _GroupTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
+          // Title
           Text(group.display, maxLines: 2, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AkTheme.text, fontSize: 11)),
+              style: const TextStyle(color: AkTheme.text, fontSize: 11, fontWeight: FontWeight.w500)),
+          // Author
           Text(group.author, maxLines: 1, overflow: TextOverflow.ellipsis,
               style: TextStyle(color: AkTheme.dim, fontSize: 10)),
+          // Description (first book's description)
+          if (!isMulti && group.books.first.description.isNotEmpty)
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  group.books.first.description,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: AkTheme.dim, fontSize: 9, height: 1.2),
+                ),
+              ),
+            ),
         ],
       ),
     );

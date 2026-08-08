@@ -58,21 +58,29 @@ class LibraryProvider extends ChangeNotifier {
   }
 
   String _baseTitle(String title) {
-    var t = title.replaceAll(RegExp(r'\s*/\s*.*\$'), '').replaceAll(RegExp(r'\s*\([^)]*\)\s*\$'), '');
+    var t = title;
+    // Remove author after " / "
+    t = t.replaceAll(RegExp(r'\s*/\s*.*$'), '');
+    // Remove parenthetical notes
+    t = t.replaceAll(RegExp(r'\s*\([^)]*\)\s*$'), '');
     const roman = 'IVXLCХ';
-    final rc = '[${roman}]';
-    final base = r'\s*' + rc + r'+(\s*[-–—]\s*' + rc + r'+)?';
+    final rc = '[$roman]';
+    // Aggressively strip volume/chapter/part numbers
     final patterns = [
-      RegExp(r'\s+(Том|Книга|Часть)' + base + r'[.:]?\\s*.*'),
-      RegExp(r'\s+' + base + r'[.:]?\s*\$'),
-      RegExp(r'[-–—]\s*' + base + r'\s*\$'),
-      RegExp(r'\s+\d+\s*[-–—:.]\s*\$'),
-      RegExp(r'\s+\d+\s*\$'),
-      RegExp(r'[.:]\s+.*\$'),
+      RegExp('\\s+(Том|Книга|Часть| Book|Part|Vol\\.?)+\\s*$rc+(\\s*[-–—]\\s*$rc+)?[.:]?\\s*.*', caseSensitive: false),
+      RegExp('\\s+$rc+(\\s*[-–—]\\s*$rc+)?[.:]?\\s*$'),
+      RegExp('[-–—]\\s*$rc+(\\s*[-–—]\\s*$rc+)?\\s*$'),
+      RegExp('\\s+\\d+\\s*[-–—:.]\\s*.*$'),
+      RegExp('\\s+\\d+\\s*$'),
+      RegExp('[.:]\\s+.*$'),
+      RegExp('\\s*#\\d+\\s*$'),
+      RegExp('\\s*-\\s*Глава\\s+.*$', caseSensitive: false),
     ];
     for (final p in patterns) {
       t = t.replaceFirst(p, '');
     }
+    return t.trim();
+  }
     return t.trim();
   }
 
