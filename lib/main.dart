@@ -61,6 +61,7 @@ class AudiobookApp extends StatelessWidget {
           create: (ctx) {
             final s = PlayerService(ctx.read<AkApi>(), ctx.read<DownloadService>(), ctx.read<AkAudioHandler>());
             s.listen();
+            s.restore();
             return s;
           },
           update: (_, _, prev) => prev!,

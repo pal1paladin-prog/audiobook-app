@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/ak_models.dart';
 import '../api/ak_api.dart';
 import '../ui/app_toast.dart';
@@ -8,6 +11,11 @@ import 'download_service.dart';
 import 'audio_handler.dart';
 
 class PlayerService extends ChangeNotifier {
+  static const _prefBook = 'lastBookPath';
+  static const _prefIndex = 'lastTrackIndex';
+  static const _prefPos = 'lastPositionSec';
+  static const _prefPlaying = 'lastWasPlaying';
+
   final AkAudioHandler handler;
   final AkApi api;
   final DownloadService downloads;
@@ -18,6 +26,7 @@ class PlayerService extends ChangeNotifier {
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
   bool _playing = false;
+  Timer? _saveTimer;
 
   PlayerService(this.api, this.downloads, this.handler) {
     handler.onNext = next;
@@ -57,10 +66,15 @@ class PlayerService extends ChangeNotifier {
     final local = downloads.localPath(track.path);
     final uri = local.isNotEmpty ? Uri.file(local) : api.streamUri(track.path);
     try {
+      final session = await AudioSession.instance;
+      await session.setActive(true);
       await _player.setUrl(uri.toString());
       _updateMediaItem();
       await _player.play();
+      await session.setActive(true);
       await _restoreProgress(track.path);
+      saveState();
+      _startSaving();
     } catch (e) {
       showToast('Не удалось воспроизвести «${track.name}»', error: true);
     }
@@ -106,8 +120,12 @@ class PlayerService extends ChangeNotifier {
     if (_player.playing) {
       await _player.pause();
     } else {
+      final session = await AudioSession.instance;
+      await session.setActive(true);
       await _player.play();
+      _startSaving();
     }
+    saveState();
     notifyListeners();
   }
 
@@ -135,8 +153,57 @@ class PlayerService extends ChangeNotifier {
 
   void saveProgress() {
     if (!hasTrack) return;
-    api.saveProgress(currentTrack!.path, _player.position.inSeconds.toDouble(),
-        dur: _player.duration?.inSeconds.toDouble());
+    final t = currentTrack!;
+    unawaited(api.saveProgress(t.path, _player.position.inSeconds.toDouble(),
+        dur: _player.duration?.inSeconds.toDouble()).catchError((_) => null));
+  }
+
+  Future<void> saveState() async {
+    if (!hasTrack) return;
+    try {
+      final p = await SharedPreferences.getInstance();
+      await p.setString(_prefBook, _currentBook?.path ?? '');
+      await p.setInt(_prefIndex, _index);
+      await p.setDouble(_prefPos, _player.position.inSeconds.toDouble());
+      await p.setBool(_prefPlaying, _player.playing);
+    } catch (_) {}
+    saveProgress();
+  }
+
+  void _startSaving() {
+    _saveTimer ??= Timer.periodic(const Duration(seconds: 15), (_) => saveState());
+  }
+
+  /// Восстанавливает последний проигрываемый трек после перезапуска приложения.
+  Future<void> restore() async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      final bookPath = p.getString(_prefBook) ?? '';
+      if (bookPath.isEmpty) return;
+      final books = await api.books();
+      final book = books.where((b) => b.path == bookPath).toList();
+      if (book.isEmpty) return;
+      final tracks = await api.bookTracks(bookPath);
+      if (tracks.isEmpty) return;
+      final index = (p.getInt(_prefIndex) ?? 0).clamp(0, tracks.length - 1);
+      _currentBook = book.first;
+      _queue = tracks;
+      _index = index;
+      final track = currentTrack!;
+      final local = downloads.localPath(track.path);
+      final uri = local.isNotEmpty ? Uri.file(local) : api.streamUri(track.path);
+      await _player.setUrl(uri.toString());
+      _updateMediaItem();
+      final pos = p.getDouble(_prefPos) ?? 0;
+      if (pos > 2) await _player.seek(Duration(seconds: pos.round()));
+      if (p.getBool(_prefPlaying) ?? false) {
+        final session = await AudioSession.instance;
+        await session.setActive(true);
+        await _player.play();
+        _startSaving();
+      }
+      notifyListeners();
+    } catch (_) {}
   }
 
   void listen() {
@@ -151,6 +218,7 @@ class PlayerService extends ChangeNotifier {
     _player.playerStateStream.listen((s) {
       _playing = s.playing;
       if (s.processingState == ProcessingState.completed) {
+        saveProgress();
         next();
       }
       notifyListeners();
@@ -159,7 +227,8 @@ class PlayerService extends ChangeNotifier {
 
   @override
   void dispose() {
-    saveProgress();
+    _saveTimer?.cancel();
+    saveState();
     _player.dispose();
     super.dispose();
   }
