@@ -119,15 +119,18 @@ class PlayerOverlay extends StatelessWidget {
                     builder: (_, snap) {
                       final pos = snap.data ?? Duration.zero;
                       final maxMs = context.read<PlayerService>().duration.inMilliseconds.toDouble();
-                      return maxMs > 0
-                          ? Slider(
-                              value: context.read<PlayerService>().position.inMilliseconds.toDouble().clamp(0, maxMs),
-                              max: maxMs,
-                              activeColor: Theme.of(context).colorScheme.primary,
-                              onChanged: maxMs > 0 ? (v) => context.read<PlayerService>().seek(Duration(milliseconds: v.round())) : null,
-                            )
-                          : const Slider(value: 0, max: 1, onChanged: null),
-                    ),
+                      if (maxMs > 0) {
+                        return Slider(
+                          value: context.read<PlayerService>().position.inMilliseconds.toDouble().clamp(0, maxMs),
+                          max: maxMs,
+                          activeColor: Theme.of(context).colorScheme.primary,
+                          onChanged: (v) => context.read<PlayerService>().seek(Duration(milliseconds: v.round())),
+                        );
+                      } else {
+                        return Slider(value: 0, max: 1, onChanged: null);
+                      }
+                    },
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
@@ -175,8 +178,8 @@ class PlayerOverlay extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
