@@ -1,2 +1,2 @@
-const String kAppVersion = '1.0.1';
+const String kAppVersion = '1.0.2';
 const String kAppName = 'аудиокниги';
