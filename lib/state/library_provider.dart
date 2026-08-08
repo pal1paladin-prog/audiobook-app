@@ -81,8 +81,6 @@ class LibraryProvider extends ChangeNotifier {
     }
     return t.trim();
   }
-    return t.trim();
-  }
 
   List<SeriesGroup> get grouped {
     final books = _filtered;
