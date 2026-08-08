@@ -150,7 +150,7 @@ class PlayerOverlay extends StatelessWidget {
                               Consumer<PlayerService>(
                                 builder: (_, p, _) => Text(
                                   p.currentBook?.author ?? '',
-                                  style: const TextStyle(fontSize: 11, color: Colors.grey[400]),
+                                  style: TextStyle(fontSize: 11, color: Colors.grey[400]),
                                   maxLines: 1, overflow: TextOverflow.ellipsis,
                                 ),
                               ),
