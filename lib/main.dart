@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:audio_service/audio_service.dart';
 import 'api/ak_api.dart';
 import 'services/download_service.dart';
 import 'services/player_service.dart';
+import 'services/audio_handler.dart';
 import 'state/library_provider.dart';
 import 'state/settings_provider.dart';
 import 'theme/ak_theme.dart';
@@ -12,18 +14,38 @@ import 'ui/screens/downloads_screen.dart';
 import 'ui/screens/activity_screen.dart';
 import 'config.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final settings = SettingsProvider();
   await settings.load();
   final api = AkApi(baseUrl: settings.baseUrl.isEmpty ? 'https://192.168.0.142/audio-kniga/ak.php' : settings.baseUrl);
-  runApp(AudiobookApp(settings: settings, api: api));
+  final downloads = DownloadService(api);
+  await downloads.init();
+  final handler = await AudioService.init(
+    builder: () => AkAudioHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.ryanheise.audioservice.channel.audio',
+      androidNotificationChannelName: 'Audio playback',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+    ),
+  );
+  runApp(AudiobookApp(settings: settings, api: api, downloads: downloads, handler: handler));
 }
 
 class AudiobookApp extends StatelessWidget {
   final SettingsProvider settings;
   final AkApi api;
-  const AudiobookApp({super.key, required this.settings, required this.api});
+  final DownloadService downloads;
+  final AkAudioHandler handler;
+  const AudiobookApp({
+    super.key,
+    required this.settings,
+    required this.api,
+    required this.downloads,
+    required this.handler,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +53,16 @@ class AudiobookApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: settings),
         Provider<AkApi>.value(value: api),
-        ChangeNotifierProvider(create: (_) => DownloadService(api)..init()),
+        Provider<AkAudioHandler>.value(value: handler),
+        ChangeNotifierProvider.value(value: downloads),
         ChangeNotifierProvider(create: (_) => LibraryProvider(api)),
-        ChangeNotifierProxyProvider2<DownloadService, AkApi, PlayerService>(
-          create: (ctx) => PlayerService(ctx.read<AkApi>(), ctx.read<DownloadService>())..listen(),
-          update: (_, dl, api, prev) => prev ?? PlayerService(api, dl),
+        ChangeNotifierProxyProvider<DownloadService, PlayerService>(
+          create: (ctx) {
+            final s = PlayerService(ctx.read<AkApi>(), ctx.read<DownloadService>(), ctx.read<AkAudioHandler>());
+            s.listen();
+            return s;
+          },
+          update: (_, _, prev) => prev!,
         ),
       ],
       child: Consumer<SettingsProvider>(
@@ -62,7 +89,6 @@ class RootShell extends StatefulWidget {
 
 class _RootShellState extends State<RootShell> {
   int _idx = 0;
-  static const _screens = [HomeScreen(), DownloadsScreen(), ActivityScreen(), SettingsScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +132,7 @@ class PlayerOverlay extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, -2))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, -2))],
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: MediaQuery.removePadding(
@@ -116,16 +142,16 @@ class PlayerOverlay extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   StreamBuilder<Duration>(
-                    stream: context.read<PlayerService>().positionStream,
+                    stream: player.positionStream,
                     builder: (_, snap) {
                       final pos = snap.data ?? Duration.zero;
-                      final maxMs = context.read<PlayerService>().duration.inMilliseconds.toDouble();
+                      final maxMs = player.duration.inMilliseconds.toDouble();
                       if (maxMs > 0) {
                         return Slider(
-                          value: context.read<PlayerService>().position.inMilliseconds.toDouble().clamp(0, maxMs),
+                          value: pos.inMilliseconds.toDouble().clamp(0, maxMs),
                           max: maxMs,
                           activeColor: Theme.of(context).colorScheme.primary,
-                          onChanged: (v) => context.read<PlayerService>().seek(Duration(milliseconds: v.round())),
+                          onChanged: (v) => player.seek(Duration(milliseconds: v.round())),
                         );
                       } else {
                         return Slider(value: 0, max: 1, onChanged: null);
@@ -161,7 +187,7 @@ class PlayerOverlay extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            IconButton(icon: const Icon(Icons.skip_previous), color: Colors.white, onPressed: () => context.read<PlayerService>().prev()),
+                            IconButton(icon: const Icon(Icons.skip_previous), color: Colors.white, onPressed: () => player.prev()),
                             const SizedBox(width: 8),
                             CircleAvatar(
                               radius: 28,
@@ -169,12 +195,12 @@ class PlayerOverlay extends StatelessWidget {
                               child: Consumer<PlayerService>(
                                 builder: (_, p, _) => IconButton(
                                   icon: Icon(p.playing ? Icons.pause : Icons.play_arrow, size: 28, color: Colors.white),
-                                  onPressed: () => context.read<PlayerService>().playPause(),
+                                  onPressed: () => player.playPause(),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
-                            IconButton(icon: const Icon(Icons.skip_next), color: Colors.white, onPressed: () => context.read<PlayerService>().next()),
+                            IconButton(icon: const Icon(Icons.skip_next), color: Colors.white, onPressed: () => player.next()),
                           ],
                         ),
                       ],

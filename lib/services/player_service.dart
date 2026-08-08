@@ -1,20 +1,15 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:audio_session/audio_session.dart';
 import '../models/ak_models.dart';
 import '../api/ak_api.dart';
 import 'download_service.dart';
+import 'audio_handler.dart';
 
 class PlayerService extends ChangeNotifier {
-  final AudioPlayer _player = AudioPlayer();
+  final AkAudioHandler handler;
   final AkApi api;
   final DownloadService downloads;
-
-  Future<void> _initAudioSession() async {
-    final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.music());
-    await session.setActive(true);
-  }
 
   List<AkTrack> _queue = [];
   int _index = -1;
@@ -23,7 +18,14 @@ class PlayerService extends ChangeNotifier {
   Duration _duration = Duration.zero;
   bool _playing = false;
 
-  PlayerService(this.api, this.downloads);
+  PlayerService(this.api, this.downloads, this.handler) {
+    handler.onNext = next;
+    handler.onPrev = prev;
+    handler.onFastForward = () => skip30(30);
+    handler.onRewind = () => skip30(-30);
+  }
+
+  AudioPlayer get _player => handler.player;
 
   List<AkTrack> get queue => _queue;
   int get index => _index;
@@ -54,12 +56,30 @@ class PlayerService extends ChangeNotifier {
     final local = downloads.localPath(track.path);
     final uri = local.isNotEmpty ? Uri.file(local) : api.streamUri(track.path);
     await _player.setUrl(uri.toString());
+    _updateMediaItem();
     final saved = await api.getProgress(track.path);
     if (saved != null && saved > 2) {
       await _player.seek(Duration(seconds: saved.round()));
     }
     await _player.play();
     notifyListeners();
+  }
+
+  void _updateMediaItem() {
+    final track = currentTrack;
+    final book = _currentBook;
+    if (track == null) return;
+    Uri? art;
+    final cover = book?.coverPath ?? '';
+    if (cover.isNotEmpty) art = api.coverUri(cover);
+    final author = book?.author;
+    handler.mediaItem.add(MediaItem(
+      id: track.path,
+      title: track.name,
+      artist: (author != null && author.isNotEmpty) ? author : null,
+      album: book?.title,
+      artUri: art,
+    ));
   }
 
   Future<void> playPause() async {
@@ -100,7 +120,6 @@ class PlayerService extends ChangeNotifier {
   }
 
   void listen() {
-    _initAudioSession();
     _player.positionStream.listen((p) {
       _position = p;
       notifyListeners();
