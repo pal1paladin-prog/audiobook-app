@@ -7,6 +7,7 @@ import '../../state/library_provider.dart';
 import '../../state/settings_provider.dart';
 import '../../theme/ak_theme.dart';
 import '../../config.dart';
+import '../../ui/app_toast.dart';
 import 'player_screen.dart';
 import 'series_screen.dart';
 
@@ -25,7 +26,18 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<LibraryProvider>().load();
+      _checkUpdate();
     });
+  }
+
+  Future<void> _checkUpdate() async {
+    try {
+      final api = context.read<AkApi>();
+      final latest = await api.appVersion();
+      if (mounted && latest.isNotEmpty && latest != kAppVersion) {
+        showToast('Доступно обновление приложения v$latest');
+      }
+    } catch (_) {}
   }
 
   @override
@@ -57,10 +69,10 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
             child: TextField(
               controller: _searchCtrl,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: AkTheme.text),
               decoration: InputDecoration(
                 hintText: 'Поиск…',
-                prefixIcon: const Icon(Icons.search, color: AkTheme.dim),
+                prefixIcon: Icon(Icons.search, color: AkTheme.dim),
                 suffixIcon: _query.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
@@ -112,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _body(BuildContext ctx, LibraryProvider lib) {
     if (lib.loading) return const Center(child: CircularProgressIndicator());
-    if (lib.error.isNotEmpty) return Center(child: Text('Ошибка: ${lib.error}', style: const TextStyle(color: AkTheme.danger)));
+    if (lib.error.isNotEmpty) return Center(child: Text('Ошибка: ${lib.error}', style: TextStyle(color: AkTheme.danger)));
     var groups = lib.grouped;
     if (_query.isNotEmpty) {
       groups = groups.where((g) {
@@ -121,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
             b.title.toLowerCase().contains(_query) || b.author.toLowerCase().contains(_query));
       }).toList();
     }
-    if (groups.isEmpty) return const Center(child: Text('Нет книг', style: TextStyle(color: AkTheme.dim)));
+    if (groups.isEmpty) return Center(child: Text('Нет книг', style: TextStyle(color: AkTheme.dim)));
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
       itemCount: groups.length,
@@ -177,7 +189,7 @@ class _BookRow extends StatelessWidget {
                           group.display,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: AkTheme.text, fontSize: 14, fontWeight: FontWeight.w600, height: 1.2),
+                          style: TextStyle(color: AkTheme.text, fontSize: 14, fontWeight: FontWeight.w600, height: 1.2),
                         ),
                       ),
                       if (isMulti) _CountBadge(count: group.books.length),

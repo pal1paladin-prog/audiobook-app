@@ -68,7 +68,22 @@ class AkApi {
   Uri streamUri(String trackPath) =>
       Uri.parse('$_baseUrl/ak.php?action=${Uri.encodeComponent('stream')}&path=${Uri.encodeComponent(trackPath)}&user=$_user');
 
-  Uri coverUri(String coverPath) => Uri.parse('$_baseUrl/$coverPath');
+  Uri coverUri(String coverPath) {
+    final segs = coverPath.split('/').map(Uri.encodeComponent).join('/');
+    return Uri.parse('$_baseUrl/books/$segs');
+  }
+
+  Future<String> appVersion() async {
+    try {
+      final r = await _dio.get('$_baseUrl/app-version.txt',
+          options: Options(responseType: ResponseType.plain, receiveTimeout: const Duration(seconds: 5)));
+      if (r.statusCode != 200) return '';
+      final v = (r.data as String? ?? '').trim();
+      return v.isNotEmpty ? v : '';
+    } catch (_) {
+      return '';
+    }
+  }
 
   Future<double?> getProgress(String trackPath) async {
     final r = await _dio.getUri(_uri('progress', {'path': trackPath}));

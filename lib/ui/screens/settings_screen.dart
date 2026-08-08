@@ -75,12 +75,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline, color: AkTheme.accent2, size: 20),
+                Icon(Icons.info_outline, color: AkTheme.accent2, size: 20),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(kAppName, style: TextStyle(color: AkTheme.text, fontSize: 14, fontWeight: FontWeight.w500)),
+                    Text(kAppName, style: TextStyle(color: AkTheme.text, fontSize: 14, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 2),
                     Text('Версия $kAppVersion', style: TextStyle(color: AkTheme.dim, fontSize: 12)),
                   ],
@@ -89,7 +89,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text('Кэширование + фоновый плеер + Tailscale',
+          Text('Кэширование + фоновый плеер + Tailscale',
               style: TextStyle(color: AkTheme.dim, fontSize: 11)),
         ],
       ),
@@ -117,13 +117,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: const [
+          Row(children: [
             Icon(Icons.vpn_lock, color: AkTheme.accent2, size: 18),
             SizedBox(width: 8),
             Text('Tailscale', style: TextStyle(color: AkTheme.accent, fontWeight: FontWeight.w600)),
           ]),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Для доступа к серверу через Tailscale:\n'
             '1. Установите Tailscale на телефон и подключите к вашей сети\n'
             '2. Узнайте Tailscale-IP сервера (в приложении Tailscale или на mynet)\n'
@@ -142,6 +142,6 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Text(title, style: const TextStyle(color: AkTheme.accent2, fontSize: 12, fontWeight: FontWeight.w600)),
+        child: Text(title, style: TextStyle(color: AkTheme.accent2, fontSize: 12, fontWeight: FontWeight.w600)),
       );
 }

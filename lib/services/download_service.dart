@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -113,7 +112,7 @@ class DownloadService extends ChangeNotifier {
     if (await f.exists()) return savePath;
     final dir = f.parent;
     if (!await dir.exists()) await dir.create(recursive: true);
-    await _dio.download('${api.baseUrl}/$coverPath', savePath);
+    await _dio.download(api.coverUri(coverPath).toString(), savePath);
     return savePath;
   }
 

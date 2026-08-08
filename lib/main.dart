@@ -8,6 +8,7 @@ import 'services/audio_handler.dart';
 import 'state/library_provider.dart';
 import 'state/settings_provider.dart';
 import 'theme/ak_theme.dart';
+import 'ui/app_toast.dart';
 import 'ui/screens/home_screen.dart';
 import 'ui/screens/settings_screen.dart';
 import 'ui/screens/downloads_screen.dart';
@@ -18,7 +19,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final settings = SettingsProvider();
   await settings.load();
-  final api = AkApi(baseUrl: settings.baseUrl.isEmpty ? 'https://192.168.0.142/audio-kniga/ak.php' : settings.baseUrl);
+  final api = AkApi(baseUrl: settings.baseUrl.isEmpty ? 'https://192.168.0.142/audio-kniga' : settings.baseUrl);
   final downloads = DownloadService(api);
   await downloads.init();
   final handler = await AudioService.init(
@@ -70,9 +71,14 @@ class AudiobookApp extends StatelessWidget {
           return MaterialApp(
             title: '$kAppName v$kAppVersion',
             debugShowCheckedModeBanner: false,
+            scaffoldMessengerKey: appMessengerKey,
             theme: AkTheme.light,
             darkTheme: AkTheme.dark,
             themeMode: settings.theme == 'system' ? ThemeMode.system : (settings.theme == 'light' ? ThemeMode.light : ThemeMode.dark),
+            builder: (context, child) {
+              AkTheme.brightness = Theme.of(context).brightness;
+              return child!;
+            },
             home: const RootShell(),
           );
         },
@@ -170,14 +176,14 @@ class PlayerOverlay extends StatelessWidget {
                               Consumer<PlayerService>(
                                 builder: (_, p, _) => Text(
                                   p.currentTrack?.name ?? '',
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AkTheme.text),
                                   maxLines: 1, overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               Consumer<PlayerService>(
                                 builder: (_, p, _) => Text(
                                   p.currentBook?.author ?? '',
-                                  style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+                                  style: TextStyle(fontSize: 11, color: AkTheme.dim),
                                   maxLines: 1, overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -187,20 +193,20 @@ class PlayerOverlay extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            IconButton(icon: const Icon(Icons.skip_previous), color: Colors.white, onPressed: () => player.prev()),
+                            IconButton(icon: const Icon(Icons.skip_previous), color: AkTheme.text, onPressed: () => player.prev()),
                             const SizedBox(width: 8),
                             CircleAvatar(
                               radius: 28,
                               backgroundColor: Theme.of(context).colorScheme.primary,
                               child: Consumer<PlayerService>(
                                 builder: (_, p, _) => IconButton(
-                                  icon: Icon(p.playing ? Icons.pause : Icons.play_arrow, size: 28, color: Colors.white),
+                                  icon: Icon(p.playing ? Icons.pause : Icons.play_arrow, size: 28, color: AkTheme.text),
                                   onPressed: () => player.playPause(),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
-                            IconButton(icon: const Icon(Icons.skip_next), color: Colors.white, onPressed: () => player.next()),
+                            IconButton(icon: const Icon(Icons.skip_next), color: AkTheme.text, onPressed: () => player.next()),
                           ],
                         ),
                       ],

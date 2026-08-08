@@ -20,19 +20,19 @@ class DownloadsScreen extends StatelessWidget {
               final mb = ((snap.data ?? 0) / 1024 / 1024).round();
               return Padding(
                 padding: const EdgeInsets.all(12),
-                child: Center(child: Text('$mb MB', style: const TextStyle(color: AkTheme.dim))),
+                child: Center(child: Text('$mb MB', style: TextStyle(color: AkTheme.dim))),
               );
             },
           ),
           IconButton(
-            icon: const Icon(Icons.delete_sweep, color: AkTheme.danger),
+            icon: Icon(Icons.delete_sweep, color: AkTheme.danger),
             onPressed: () => _confirmClear(context, dl),
             tooltip: 'Очистить кэш',
           ),
         ],
       ),
       body: items.isEmpty
-          ? const Center(child: Text('Нет активных загрузок', style: TextStyle(color: AkTheme.dim)))
+          ? Center(child: Text('Нет активных загрузок', style: TextStyle(color: AkTheme.dim)))
           : ListView.builder(
               itemCount: items.length,
               itemBuilder: (ctx, i) {
@@ -40,14 +40,14 @@ class DownloadsScreen extends StatelessWidget {
                 return ListTile(
                   dense: true,
                   title: Text(it.trackPath, maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: AkTheme.text, fontSize: 12)),
+                      style: TextStyle(color: AkTheme.text, fontSize: 12)),
                   subtitle: LinearProgressIndicator(value: it.done ? 1 : it.progress),
                   trailing: it.error != null
-                      ? const Icon(Icons.error, color: AkTheme.danger, size: 18)
+                      ? Icon(Icons.error, color: AkTheme.danger, size: 18)
                       : it.done
-                          ? const Icon(Icons.check, color: AkTheme.ok, size: 18)
+                          ? Icon(Icons.check, color: AkTheme.ok, size: 18)
                           : IconButton(
-                              icon: const Icon(Icons.cancel, color: AkTheme.dim, size: 18),
+                              icon: Icon(Icons.cancel, color: AkTheme.dim, size: 18),
                               onPressed: () => dl.cancelTrack(it.trackPath),
                             ),
                 );
@@ -61,8 +61,8 @@ class DownloadsScreen extends StatelessWidget {
       context: ctx,
       builder: (ctx) => AlertDialog(
         backgroundColor: AkTheme.bg2,
-        title: const Text('Очистить кэш?', style: TextStyle(color: AkTheme.text)),
-        content: const Text('Все скачанные файлы будут удалены.', style: TextStyle(color: AkTheme.dim)),
+        title: Text('Очистить кэш?', style: TextStyle(color: AkTheme.text)),
+        content: Text('Все скачанные файлы будут удалены.', style: TextStyle(color: AkTheme.dim)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
           TextButton(
@@ -70,7 +70,7 @@ class DownloadsScreen extends StatelessWidget {
               Navigator.pop(ctx);
               dl.clearCache();
             },
-            child: const Text('Очистить', style: TextStyle(color: AkTheme.danger)),
+            child: Text('Очистить', style: TextStyle(color: AkTheme.danger)),
           ),
         ],
       ),

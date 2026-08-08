@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../api/ak_api.dart';
 import '../models/ak_models.dart';
+import '../ui/app_toast.dart';
 
 class SeriesGroup {
   final String key;
@@ -14,6 +15,7 @@ class SeriesGroup {
 class LibraryProvider extends ChangeNotifier {
   final AkApi api;
   List<AkBook> _all = [];
+  Set<String> _knownPaths = {};
   bool _loading = false;
   String _error = '';
   String _genre = '';
@@ -39,6 +41,13 @@ class LibraryProvider extends ChangeNotifier {
     notifyListeners();
     try {
       _all = await api.books();
+      if (_knownPaths.isNotEmpty) {
+        final fresh = _all.where((b) => !_knownPaths.contains(b.path)).toList();
+        if (fresh.isNotEmpty) {
+          showToast('Обновление библиотеки: +${fresh.length} новых книг');
+        }
+      }
+      _knownPaths = _all.map((b) => b.path).toSet();
     } catch (e) {
       _error = '$e';
     } finally {

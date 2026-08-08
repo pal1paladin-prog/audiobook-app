@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../api/ak_api.dart';
 import '../../models/ak_models.dart';
-import '../../state/library_provider.dart';
 import '../../services/player_service.dart';
 import '../../services/download_service.dart';
 import '../../theme/ak_theme.dart';
@@ -70,7 +69,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _err.isNotEmpty
-              ? Center(child: Text(_err, style: const TextStyle(color: AkTheme.danger)))
+              ? Center(child: Text(_err, style: TextStyle(color: AkTheme.danger)))
               : _content(context, player, track),
     );
   }
@@ -83,9 +82,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
         _art(ctx, info),
         const SizedBox(height: 16),
         Text(info?.title ?? widget.book.title,
-            textAlign: TextAlign.center, style: const TextStyle(color: AkTheme.accent, fontSize: 16)),
+            textAlign: TextAlign.center, style: TextStyle(color: AkTheme.accent, fontSize: 16)),
         Text(info?.author ?? widget.book.author,
-            textAlign: TextAlign.center, style: const TextStyle(color: AkTheme.accent2, fontSize: 13)),
+            textAlign: TextAlign.center, style: TextStyle(color: AkTheme.accent2, fontSize: 13)),
         const Spacer(),
         _seekbar(player),
         _mainControls(player),
@@ -111,8 +110,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
       clipBehavior: Clip.antiAlias,
       child: cover.isNotEmpty
           ? CachedNetworkImage(imageUrl: api.coverUri(cover).toString(), fit: BoxFit.cover,
-              errorWidget: (_, __, ___) => const Center(child: Icon(Icons.album, size: 60, color: AkTheme.dim)))
-          : const Center(child: Icon(Icons.album, size: 60, color: AkTheme.dim)),
+              errorWidget: (_, __, ___) => Center(child: Icon(Icons.album, size: 60, color: AkTheme.dim)))
+          : Center(child: Icon(Icons.album, size: 60, color: AkTheme.dim)),
     );
   }
 
@@ -136,8 +135,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(_fmt(pos.inSeconds), style: const TextStyle(color: AkTheme.dim, fontSize: 11)),
-                Text(_fmt(dur.inSeconds), style: const TextStyle(color: AkTheme.dim, fontSize: 11)),
+                Text(_fmt(pos.inSeconds), style: TextStyle(color: AkTheme.dim, fontSize: 11)),
+                Text(_fmt(dur.inSeconds), style: TextStyle(color: AkTheme.dim, fontSize: 11)),
               ],
             ),
           ),
@@ -150,8 +149,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        IconButton(icon: const Icon(Icons.replay_30), color: AkTheme.dim, onPressed: () => player.skip30(-30)),
-        IconButton(icon: const Icon(Icons.skip_previous), color: AkTheme.dim, onPressed: () => player.prev()),
+        IconButton(icon: Icon(Icons.replay_30), color: AkTheme.dim, onPressed: () => player.skip30(-30)),
+        IconButton(icon: Icon(Icons.skip_previous), color: AkTheme.dim, onPressed: () => player.prev()),
         const SizedBox(width: 8),
         CircleAvatar(
           radius: 28,
@@ -162,8 +161,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
           ),
         ),
         const SizedBox(width: 8),
-        IconButton(icon: const Icon(Icons.skip_next), color: AkTheme.dim, onPressed: () => player.next()),
-        IconButton(icon: const Icon(Icons.forward_30), color: AkTheme.dim, onPressed: () => player.skip30(30)),
+        IconButton(icon: Icon(Icons.skip_next), color: AkTheme.dim, onPressed: () => player.next()),
+        IconButton(icon: Icon(Icons.forward_30), color: AkTheme.dim, onPressed: () => player.skip30(30)),
       ],
     );
   }
@@ -175,7 +174,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
         PopupMenuButton<double>(
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Text('${player.raw.speed}x', style: const TextStyle(color: AkTheme.accent2)),
+            child: Text('${player.raw.speed}x', style: TextStyle(color: AkTheme.accent2)),
           ),
           itemBuilder: (_) => [0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5]
               .map((s) => PopupMenuItem(value: s, child: Text('${s}x')))
@@ -209,8 +208,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
             leading: Text('${i + 1}', style: TextStyle(color: active ? AkTheme.accent2 : AkTheme.dim)),
             title: Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: active ? AkTheme.accent2 : AkTheme.text, fontSize: 12)),
-            trailing: Text(_fmt(t.size ~/ 1024 ~/ 1024), style: const TextStyle(color: AkTheme.dim, fontSize: 10)),
-            onTap: () => player.seek(Duration.zero),
+            trailing: Text(_fmt(t.size ~/ 1024 ~/ 1024), style: TextStyle(color: AkTheme.dim, fontSize: 10)),
+            onTap: () => player.playIndex(i),
             selected: active,
             selectedTileColor: AkTheme.bg3,
           );

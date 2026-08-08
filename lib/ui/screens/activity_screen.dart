@@ -65,10 +65,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         ),
                         title: Text(e.title.isNotEmpty ? e.title : e.directory,
                             maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: AkTheme.text, fontSize: 12)),
+                            style: TextStyle(color: AkTheme.text, fontSize: 12)),
                         subtitle: Text('${e.author} · ${e.manual.isNotEmpty ? e.manual : e.site}',
-                            style: const TextStyle(color: AkTheme.dim, fontSize: 10)),
-                        trailing: Text(_fmt(e.at), style: const TextStyle(color: AkTheme.dim, fontSize: 10)),
+                            style: TextStyle(color: AkTheme.dim, fontSize: 10)),
+                        trailing: Text(_fmt(e.at), style: TextStyle(color: AkTheme.dim, fontSize: 10)),
                       );
                     },
                   ),
@@ -81,7 +81,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   Widget _stat(String label, int count, Color color) => Row(
         children: [Text('$count', style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.w600)),
           const SizedBox(width: 4),
-          Text(label, style: const TextStyle(color: AkTheme.dim, fontSize: 12))],
+          Text(label, style: TextStyle(color: AkTheme.dim, fontSize: 12))],
       );
 
   String _fmt(DateTime d) =>

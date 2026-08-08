@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/ak_models.dart';
 import '../api/ak_api.dart';
+import '../ui/app_toast.dart';
 import 'download_service.dart';
 import 'audio_handler.dart';
 
@@ -55,14 +56,33 @@ class PlayerService extends ChangeNotifier {
     final track = _queue[i];
     final local = downloads.localPath(track.path);
     final uri = local.isNotEmpty ? Uri.file(local) : api.streamUri(track.path);
-    await _player.setUrl(uri.toString());
-    _updateMediaItem();
-    final saved = await api.getProgress(track.path);
-    if (saved != null && saved > 2) {
-      await _player.seek(Duration(seconds: saved.round()));
+    try {
+      await _player.setUrl(uri.toString());
+      _updateMediaItem();
+      await _player.play();
+      await _restoreProgress(track.path);
+    } catch (e) {
+      showToast('Не удалось воспроизвести «${track.name}»', error: true);
     }
-    await _player.play();
     notifyListeners();
+  }
+
+  Future<void> _restoreProgress(String trackPath) async {
+    try {
+      final saved = await api.getProgress(trackPath);
+      if (saved != null && saved > 2 && _player.duration != null) {
+        await _player.seek(Duration(seconds: saved.round()));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> playIndex(int i) async {
+    if (i < 0 || i >= _queue.length) return;
+    if (i == _index) {
+      await _player.seek(Duration.zero);
+    } else {
+      await _playIndex(i);
+    }
   }
 
   void _updateMediaItem() {

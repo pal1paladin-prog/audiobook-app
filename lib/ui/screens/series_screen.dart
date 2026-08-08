@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../api/ak_api.dart';
 import '../../models/ak_models.dart';
-import '../../services/download_service.dart';
 import '../../services/player_service.dart';
 import '../../state/library_provider.dart';
 import '../../theme/ak_theme.dart';
@@ -20,8 +19,8 @@ class SeriesScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          Text('Автор: ${group.author.isEmpty ? '—' : group.author}', style: const TextStyle(color: AkTheme.dim)),
-          Text('Книг: ${group.books.length}', style: const TextStyle(color: AkTheme.dim)),
+          Text('Автор: ${group.author.isEmpty ? '—' : group.author}', style: TextStyle(color: AkTheme.dim)),
+          Text('Книг: ${group.books.length}', style: TextStyle(color: AkTheme.dim)),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () => context.read<PlayerService>().playBook(group.books.first, []),
@@ -33,10 +32,10 @@ class SeriesScreen extends StatelessWidget {
               ...group.books.map((b) => Card(
                   color: Theme.of(context).cardColor,
                   child: ListTile(
-                  title: Text(b.title, style: const TextStyle(color: AkTheme.text, fontSize: 13)),
-                  subtitle: b.author.isNotEmpty ? Text(b.author, style: const TextStyle(color: AkTheme.dim, fontSize: 11)) : null,
+                  title: Text(b.title, style: TextStyle(color: AkTheme.text, fontSize: 13)),
+                  subtitle: b.author.isNotEmpty ? Text(b.author, style: TextStyle(color: AkTheme.dim, fontSize: 11)) : null,
                   trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: AkTheme.danger),
+                    icon: Icon(Icons.delete_outline, color: AkTheme.danger),
                     onPressed: () => _confirmDelete(context, api, b),
                   ),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PlayerScreen(book: b))),
@@ -52,8 +51,8 @@ class SeriesScreen extends StatelessWidget {
       context: ctx,
       builder: (ctx) => AlertDialog(
         backgroundColor: AkTheme.bg2,
-        title: const Text('Удалить книгу?', style: TextStyle(color: AkTheme.text)),
-        content: Text(b.title, style: const TextStyle(color: AkTheme.dim)),
+        title: Text('Удалить книгу?', style: TextStyle(color: AkTheme.text)),
+        content: Text(b.title, style: TextStyle(color: AkTheme.dim)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
           TextButton(
@@ -62,7 +61,7 @@ class SeriesScreen extends StatelessWidget {
               await api.deleteBook(b.path);
               if (ctx.mounted) ctx.read<LibraryProvider>().load();
             },
-            child: const Text('Удалить', style: TextStyle(color: AkTheme.danger)),
+            child: Text('Удалить', style: TextStyle(color: AkTheme.danger)),
           ),
         ],
       ),
